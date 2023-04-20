@@ -39,26 +39,39 @@ struct iovec {
 };
 #endif
 
-#define get_unaligned_memcpy(x) ({ \
-		typeof(*(x)) _ret; \
-		memcpy(&_ret, (x), sizeof(*(x))); \
-		_ret; })
-#define put_unaligned_memcpy(v,x) ({ \
-		typeof((v)) _v = (v); \
-		memcpy((x), &_v, sizeof(*(x))); })
+#if defined(__GNUC__) || defined(__clang__)
+#  define ALWAYS_INLINE inline __attribute__((always_inline))
+#elif defined(_MSC_VER)
+#  define ALWAYS_INLINE __forceinline
+#else
+#  define ALWAYS_INLINE inline
+#endif
 
-#define get_unaligned get_unaligned_memcpy
-#define put_unaligned put_unaligned_memcpy
-#define get_unaligned64 get_unaligned_memcpy
-#define put_unaligned64 put_unaligned_memcpy
+#define DECLARE_GET_UNALIGNED(tx) \
+static ALWAYS_INLINE tx get_unaligned_##tx(const void *x) { \
+    tx ret; \
+    memcpy(&ret, x, sizeof(tx)); \
+    return ret; }
 
-#define get_unaligned_le32(x) (le32toh(get_unaligned((u32 *)(x))))
-#define put_unaligned_le16(v,x) (put_unaligned(htole16(v), (u16 *)(x)))
+#define DECLARE_PUT_UNALIGNED(tx) \
+static ALWAYS_INLINE void *put_unaligned_##tx(tx v, void *x) { \
+    tx _v = (v); \
+	return memcpy((x), &_v, sizeof(tx)); }
 
 typedef unsigned char u8;
 typedef unsigned short u16;
 typedef unsigned u32;
 typedef unsigned long long u64;
+
+DECLARE_GET_UNALIGNED(u16) // get_unaligned_u16
+DECLARE_PUT_UNALIGNED(u16) // put_unaligned_u16
+DECLARE_GET_UNALIGNED(u32) // get_unaligned_u32
+DECLARE_PUT_UNALIGNED(u32) // put_unaligned_u32
+DECLARE_GET_UNALIGNED(u64) // get_unaligned_u64
+DECLARE_PUT_UNALIGNED(u64) // put_unaligned_u64
+
+#define get_unaligned_le32(x) (le32toh(get_unaligned_u32(x)))
+#define put_unaligned_le16(v,x) (put_unaligned_u16(htole16(v), x))
 
 #define BUG_ON(x) assert(!(x))
 
@@ -69,8 +82,31 @@ typedef unsigned long long u64;
 
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof(*(x)))
 
-#define likely(x) __builtin_expect((x), 1)
-#define unlikely(x) __builtin_expect((x), 0)
+#if defined(_MSC_VER)
+#  define likely(x) (x)
+#  define unlikely(x) (x)
+static __forceinline int __builtin_clz(u32 x)
+{
+    unsigned long index;
+    _BitScanReverse(&index, x);
+    return 31 - (int) index;
+}
+static __forceinline int __builtin_ctz(u32 x)
+{
+    unsigned long index;
+    _BitScanForward(&index, x);
+    return (int) index;
+}
+static __forceinline int __builtin_ctzll(u64 x)
+{
+    unsigned long index;
+    _BitScanForward64(&index, x);
+    return (int) index;
+}
+#else
+#  define likely(x) __builtin_expect((x), 1)
+#  define unlikely(x) __builtin_expect((x), 0)
+#endif
 
 #define min_t(t,x,y) ((x) < (y) ? (x) : (y))
 #define max_t(t,x,y) ((x) > (y) ? (x) : (y))
