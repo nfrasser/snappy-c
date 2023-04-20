@@ -83,8 +83,8 @@ DECLARE_PUT_UNALIGNED(u64) // put_unaligned_u64
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof(*(x)))
 
 #if defined(_MSC_VER)
-#  define likely(x) ((x) == 1)
-#  define unlikely(x) ((x) == 0)
+#  define likely(x) (x)
+#  define unlikely(x) (x)
 static __forceinline int __builtin_clz(u32 x)
 {
     unsigned long index;
