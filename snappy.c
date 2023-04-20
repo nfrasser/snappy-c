@@ -116,44 +116,19 @@ static inline bool is_little_endian(void)
 	return false;
 }
 
-#if defined(_MSC_VER)
-static __forceinline int clz(u32)
-{
-	unsigned long index;
-	_BitScanReverse(&index, x);
-	return 31 - (int) index;
-}
-static __forceinline int ctz(u32)
-{
-	unsigned long index;
-	_BitScanForward(&index, x);
-	return (int) index;
-}
-static __forceinline int ctzll(u64 x)
-{
-    unsigned long index;
-    _BitScanForward64(&index, x);
-    return (int) index;
-}
-#else
-#  define clz __builtin_clz
-#  define ctz __builtin_ctz
-#  define ctzll __builtin_ctzll
-#endif
-
 static inline int log2_floor(u32 n)
 {
-	return n == 0 ? -1 : 31 ^ clz(n);
+	return n == 0 ? -1 : 31 ^ __builtin_clz(n);
 }
 
 static inline int find_lsb_set_non_zero(u32 n)
 {
-	return ctz(n);
+	return __builtin_ctz(n);
 }
 
 static inline int find_lsb_set_non_zero64(u64 n)
 {
-	return ctzll(n);
+	return __builtin_ctzll(n);
 }
 
 #define kmax32 5

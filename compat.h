@@ -85,6 +85,24 @@ DECLARE_PUT_UNALIGNED(u64) // put_unaligned_u64
 #if defined(_MSC_VER)
 #  define likely(x) ((x) == 1)
 #  define unlikely(x) ((x) == 0)
+static __forceinline int __builtin_clz(u32 x)
+{
+    unsigned long index;
+    _BitScanReverse(&index, x);
+    return 31 - (int) index;
+}
+static __forceinline int __builtin_ctz(u32 x)
+{
+    unsigned long index;
+    _BitScanForward(&index, x);
+    return (int) index;
+}
+static __forceinline int __builtin_ctzll(u64 x)
+{
+    unsigned long index;
+    _BitScanForward64(&index, x);
+    return (int) index;
+}
 #else
 #  define likely(x) __builtin_expect((x), 1)
 #  define unlikely(x) __builtin_expect((x), 0)
