@@ -82,8 +82,13 @@ DECLARE_PUT_UNALIGNED(u64) // put_unaligned_u64
 
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof(*(x)))
 
-#define likely(x) __builtin_expect((x), 1)
-#define unlikely(x) __builtin_expect((x), 0)
+#if defined(_MSC_VER)
+#  define likely(x) ((x) == 1)
+#  define unlikely(x) ((x) == 0)
+#else
+#  define likely(x) __builtin_expect((x), 1)
+#  define unlikely(x) __builtin_expect((x), 0)
+#endif
 
 #define min_t(t,x,y) ((x) < (y) ? (x) : (y))
 #define max_t(t,x,y) ((x) > (y) ? (x) : (y))

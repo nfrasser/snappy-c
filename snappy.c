@@ -116,19 +116,44 @@ static inline bool is_little_endian(void)
 	return false;
 }
 
+#if defined(_MSC_VER)
+static __forceinline int clz(u32)
+{
+	unsigned long index;
+	_BitScanReverse(&index, x);
+	return 31 - (int) index;
+}
+static __forceinline int ctz(u32)
+{
+	unsigned long index;
+	_BitScanForward(&index, x);
+	return (int) index;
+}
+static __forceinline int ctzll(u64 x)
+{
+    unsigned long index;
+    _BitScanForward64(&index, x);
+    return (int) index;
+}
+#else
+#  define clz __builtin_clz
+#  define ctz __builtin_ctz
+#  define ctzll __builtin_ctzll
+#endif
+
 static inline int log2_floor(u32 n)
 {
-	return n == 0 ? -1 : 31 ^ __builtin_clz(n);
+	return n == 0 ? -1 : 31 ^ clz(n);
 }
 
 static inline int find_lsb_set_non_zero(u32 n)
 {
-	return __builtin_ctz(n);
+	return ctz(n);
 }
 
 static inline int find_lsb_set_non_zero64(u64 n)
 {
-	return __builtin_ctzll(n);
+	return ctzll(n);
 }
 
 #define kmax32 5
@@ -375,7 +400,7 @@ static inline bool writer_check_length(struct writer *w)
  * Note that this does not match the semantics of either memcpy()
  * or memmove().
  */
-static inline void incremental_copy(const char *src, char *op, ssize_t len)
+static inline void incremental_copy(const char *src, char *op, ptrdiff_t len)
 {
 	DCHECK_GT(len, 0);
 	do {
@@ -419,7 +444,7 @@ static inline void incremental_copy(const char *src, char *op, ssize_t len)
 #define kmax_increment_copy_overflow  10
 
 static inline void incremental_copy_fast_path(const char *src, char *op,
-					      ssize_t len)
+					      ptrdiff_t len)
 {
 	while (op - src < 8) {
 		unaligned_copy64(src, op);
