@@ -61,13 +61,13 @@
 #define CHECK_LT(a, b) CRASH_UNLESS((a) < (b))
 #define CHECK_GT(a, b) CRASH_UNLESS((a) > (b))
 
-#define UNALIGNED_LOAD16(_p) get_unaligned((u16 *)(_p))
-#define UNALIGNED_LOAD32(_p) get_unaligned((u32 *)(_p))
-#define UNALIGNED_LOAD64(_p) get_unaligned64((u64 *)(_p))
+#define UNALIGNED_LOAD16(_p) get_unaligned_u16(_p)
+#define UNALIGNED_LOAD32(_p) get_unaligned_u32(_p)
+#define UNALIGNED_LOAD64(_p) get_unaligned_u64(_p)
 
-#define UNALIGNED_STORE16(_p, _val) put_unaligned(_val, (u16 *)(_p))
-#define UNALIGNED_STORE32(_p, _val) put_unaligned(_val, (u32 *)(_p))
-#define UNALIGNED_STORE64(_p, _val) put_unaligned64(_val, (u64 *)(_p))
+#define UNALIGNED_STORE16(_p, _val) put_unaligned_u16(_val, _p)
+#define UNALIGNED_STORE32(_p, _val) put_unaligned_u32(_val, _p)
+#define UNALIGNED_STORE64(_p, _val) put_unaligned_u64(_val, _p)
 
 /*
  * This can be more efficient than UNALIGNED_LOAD64 + UNALIGNED_STORE64
